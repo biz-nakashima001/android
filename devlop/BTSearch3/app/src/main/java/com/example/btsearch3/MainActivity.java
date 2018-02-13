@@ -11,6 +11,7 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
@@ -24,7 +25,7 @@ public class MainActivity extends Activity {
     private BluetoothAdapter bleAdapter;
     private BluetoothLeScanner bleScanner;
     ListView listView;
-    ArrayAdapter<String> adapter;
+    ArrayAdapter<BluetoothDeviceInfo> adapter;
     ArrayList<String> list;
 
     static final int REQUEST_CODE = 1;
@@ -36,31 +37,54 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+
+//        findViewById(R.id.button2).setOnClickListener(this);
+
         listView = findViewById(R.id.listView);
         adapter = new ArrayAdapter(this,android.R.layout.simple_list_item_1);
-        list = new ArrayList<>();
+//        list = new ArrayList<>();
 
         // Bluetoothの使用準備.
         bleManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
         bleAdapter = bleManager.getAdapter();
 
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M)
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
             if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                 //許可を求めるダイアログを表示します。
                 //TODO ダイアログがでない。
                 requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE);
             }
 
-        if ((bleAdapter != null) && (bleAdapter.isEnabled())) {
-            // BLEが使用可能ならスキャン開始.
-            this.scanNewDevice();
         }
+
+        findViewById(R.id.button1).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if ((bleAdapter != null) && (bleAdapter.isEnabled())) {
+                    // BLEが使用可能ならスキャン開始.
+                    list = new ArrayList<>();
+                    scanNewDevice();
+                }
+            }
+        });
+
+        findViewById(R.id.button2).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+//                hogeClickEvent(v);
+            }
+        });
+
+
     }
 
     private void scanNewDevice(){
+        adapter = new ArrayAdapter(this,android.R.layout.simple_list_item_1);
+        list = new ArrayList<>();
         bleScanner = bleAdapter.getBluetoothLeScanner();
         // デバイスの検出.
         bleScanner.startScan(scanCallback);
+
     }
 
     private ScanCallback scanCallback = new ScanCallback() {
@@ -70,21 +94,16 @@ public class MainActivity extends Activity {
             super.onScanResult(callbackType, result);
             Log.d(TAG,"call onScanSucceed");
 
-            if (result.getDevice().getName() != null && !list.contains(result.getDevice().getName())){
-                adapter.add(result.getDevice().getName());
-                list.add(result.getDevice().getName());
+            if (result.getDevice().getName() != null && !list.contains(result.getDevice().getAddress())){
+                adapter.add(new BluetoothDeviceInfo(result.getDevice().getAddress(),result.getDevice().getName()));
+                list.add(result.getDevice().getAddress());
 
-//                ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(this, R.layout.activity_main,);
-//                ((TextView)findViewById(R.id.textView)).setText("Name:" + result.getDevice().getName());
-//                ((TextView)findViewById(R.id.textView2)).setText("Address:" + result.getDevice().getAddress());
-//                ((TextView)findViewById(R.id.textView3)).setText("BluetoothType:" + result.getDevice().getType());
-//                ((TextView)findViewById(R.id.textView4)).setText("Uuids:" + result.getDevice().getUuids());
-//                ((TextView)findViewById(R.id.textView5)).setText("BondState:" + result.getDevice().getBondState());
+
 
 
             }
             listView.setAdapter(adapter);
-            scanNewDevice();
+//            scanNewDevice();
         }
 
         @Override
@@ -93,5 +112,7 @@ public class MainActivity extends Activity {
             super.onScanFailed(intErrorCode);
         }
     };
+
+
 
 }
