@@ -1,18 +1,16 @@
 package com.example.btsearch3;
 
-import android.Manifest;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanResult;
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 import java.util.ArrayList;
@@ -25,44 +23,40 @@ public class MainActivity extends Activity {
     private BluetoothAdapter bleAdapter;
     private BluetoothLeScanner bleScanner;
     ListView listView;
-    ArrayAdapter<BluetoothDeviceInfo> adapter;
-    ArrayList<String> list;
+    CustomAdapter adapter;
+    ArrayList<BluetoothDeviceInfo> bleList = new ArrayList<>();
 
-    static final int REQUEST_CODE = 1;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
-//        findViewById(R.id.button2).setOnClickListener(this);
-
         listView = findViewById(R.id.listView);
-        adapter = new ArrayAdapter(this,android.R.layout.simple_list_item_1);
-//        list = new ArrayList<>();
+        adapter = new CustomAdapter(this);
+
 
         // Bluetoothの使用準備.
         bleManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
         bleAdapter = bleManager.getAdapter();
+        bleScanner = bleAdapter.getBluetoothLeScanner();
 
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-            if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                //許可を求めるダイアログを表示します。
-                //TODO ダイアログがでない。
-                requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE);
-            }
-
-        }
+        //TODO BLE検索にGPS権限許可を求めるダイアログの対応（未）
+//        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+//            if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+//                //許可を求めるダイアログを表示します。
+//                //TODO ダイアログがでない。
+//                requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_CODE);
+//            }
+//
+//        }
 
         findViewById(R.id.button1).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if ((bleAdapter != null) && (bleAdapter.isEnabled())) {
                     // BLEが使用可能ならスキャン開始.
-                    list = new ArrayList<>();
                     scanNewDevice();
                 }
             }
@@ -71,19 +65,26 @@ public class MainActivity extends Activity {
         findViewById(R.id.button2).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                hogeClickEvent(v);
+                stopScanDevices();
             }
         });
-
 
     }
 
     private void scanNewDevice(){
-        adapter = new ArrayAdapter(this,android.R.layout.simple_list_item_1);
-        list = new ArrayList<>();
-        bleScanner = bleAdapter.getBluetoothLeScanner();
         // デバイスの検出.
+        bleList = new ArrayList<>();
         bleScanner.startScan(scanCallback);
+        adapter.setBleList(bleList);
+        listView.setAdapter(adapter);
+
+    }
+
+    private void stopScanDevices(){
+        // デバイスの検出停止
+        bleScanner.stopScan(scanCallback);
+        adapter.setBleList(bleList);
+        listView.setAdapter(adapter);
 
     }
 
@@ -94,17 +95,15 @@ public class MainActivity extends Activity {
             super.onScanResult(callbackType, result);
             Log.d(TAG,"call onScanSucceed");
 
-            if (result.getDevice().getName() != null && !list.contains(result.getDevice().getAddress())){
-                adapter.add(new BluetoothDeviceInfo(result.getDevice().getAddress(),result.getDevice().getName()));
-                list.add(result.getDevice().getAddress());
+            BluetoothDevice bleDevice = result.getDevice();
 
-
-
-
+            if (bleDevice.getName() != null && !isContainsAddress(bleDevice.getAddress())){
+                bleList.add(new BluetoothDeviceInfo(bleDevice.getName(), bleDevice.getAddress()));
             }
-            listView.setAdapter(adapter);
-//            scanNewDevice();
+
         }
+
+
 
         @Override
         public void onScanFailed(int intErrorCode) {
@@ -112,6 +111,16 @@ public class MainActivity extends Activity {
             super.onScanFailed(intErrorCode);
         }
     };
+
+    private boolean isContainsAddress(String address){
+
+        for (BluetoothDeviceInfo bleInfo:bleList){
+            if (bleInfo.getAddress().equals(address)){
+                return true;
+            }
+        }
+        return false;
+    }
 
 
 

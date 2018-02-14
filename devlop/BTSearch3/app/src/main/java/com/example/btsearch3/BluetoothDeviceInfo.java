@@ -5,20 +5,38 @@ package com.example.btsearch3;
  */
 
 public class BluetoothDeviceInfo {
-    private String address;
     private String name;
+    private String address;
+    private Long id= 0L;
 
-    public BluetoothDeviceInfo(String address, String name){
+
+    public BluetoothDeviceInfo(String name, String address){
+        this.name = name;
         this.address = address;
+    }
+
+    public void setName(String name){
         this.name = name;
     }
 
-    public String getAddress(){
+//    public void setAddress(String address){
+//        this.address = address;
+//    }
+//
+//    public void setId(Long id){
+//        this.id = id;
+//    }
+
+    public String getAddress() {
         return address;
     }
 
     public String getName(){
         return name;
+    }
+
+    public Long getId() {
+        return id;
     }
 
 
