@@ -12,8 +12,10 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import static android.content.ContentValues.TAG;
 
@@ -25,6 +27,7 @@ public class MainActivity extends Activity {
     ListView listView;
     CustomAdapter adapter;
     ArrayList<BluetoothDeviceInfo> bleList = new ArrayList<>();
+    TextView proceed;
 
 
 
@@ -74,11 +77,14 @@ public class MainActivity extends Activity {
     private void scanNewDevice(){
         // デバイスの検出.
         bleList = new ArrayList<>();
+
         bleScanner.startScan(scanCallback);
 
     }
 
     private void stopScanDevices(){
+        proceed = findViewById(R.id.proceed);
+        proceed.setText("");
         // デバイスの検出停止
         bleScanner.stopScan(scanCallback);
 
@@ -87,10 +93,11 @@ public class MainActivity extends Activity {
     private ScanCallback scanCallback = new ScanCallback() {
         @Override
         public void onScanResult(int callbackType, ScanResult result) {
-            Log.d(TAG,"call onScanResult");
+            proceed = findViewById(R.id.proceed);
+//            Log.d(TAG,"call onScanResult");
             super.onScanResult(callbackType, result);
             Log.d(TAG,"call onScanSucceed");
-
+//            proceed.setText("サーチ完了");
             BluetoothDevice bleDevice = result.getDevice();
 
             if (bleDevice.getName() != null && !isContainsAddress(bleDevice.getAddress())){
@@ -98,10 +105,12 @@ public class MainActivity extends Activity {
             }
             adapter.setBleList(bleList);
             listView.setAdapter(adapter);
-
         }
 
-
+        @Override
+        public void onBatchScanResults(List<ScanResult> results) {
+            super.onBatchScanResults(results);
+        }
 
         @Override
         public void onScanFailed(int intErrorCode) {
