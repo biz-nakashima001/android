@@ -75,16 +75,12 @@ public class MainActivity extends Activity {
         // デバイスの検出.
         bleList = new ArrayList<>();
         bleScanner.startScan(scanCallback);
-        adapter.setBleList(bleList);
-        listView.setAdapter(adapter);
 
     }
 
     private void stopScanDevices(){
         // デバイスの検出停止
         bleScanner.stopScan(scanCallback);
-        adapter.setBleList(bleList);
-        listView.setAdapter(adapter);
 
     }
 
@@ -100,6 +96,8 @@ public class MainActivity extends Activity {
             if (bleDevice.getName() != null && !isContainsAddress(bleDevice.getAddress())){
                 bleList.add(new BluetoothDeviceInfo(bleDevice.getName(), bleDevice.getAddress()));
             }
+            adapter.setBleList(bleList);
+            listView.setAdapter(adapter);
 
         }
 
