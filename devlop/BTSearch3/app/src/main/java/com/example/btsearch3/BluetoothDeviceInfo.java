@@ -7,12 +7,14 @@ package com.example.btsearch3;
 public class BluetoothDeviceInfo {
     private String name;
     private String address;
+    private int type;
     private Long id= 0L;
 
 
-    public BluetoothDeviceInfo(String name, String address){
+    public BluetoothDeviceInfo(String name, String address, int type){
         this.name = name;
         this.address = address;
+        this.type = type;
     }
 
     public void setName(String name){
@@ -33,6 +35,10 @@ public class BluetoothDeviceInfo {
 
     public String getName(){
         return name;
+    }
+
+    public int getType(){
+        return type;
     }
 
     public Long getId() {

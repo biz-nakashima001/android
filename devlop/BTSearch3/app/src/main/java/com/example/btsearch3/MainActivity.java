@@ -72,12 +72,15 @@ public class MainActivity extends Activity {
             }
         });
 
+
+
     }
 
     private void scanNewDevice(){
         // デバイスの検出.
         bleList = new ArrayList<>();
-
+        proceed = findViewById(R.id.proceed);
+        proceed.setText("サーチ中。。");
         bleScanner.startScan(scanCallback);
 
     }
@@ -90,19 +93,26 @@ public class MainActivity extends Activity {
 
     }
 
+
+
+
+
     private ScanCallback scanCallback = new ScanCallback() {
         @Override
         public void onScanResult(int callbackType, ScanResult result) {
-            proceed = findViewById(R.id.proceed);
-//            Log.d(TAG,"call onScanResult");
             super.onScanResult(callbackType, result);
             Log.d(TAG,"call onScanSucceed");
-//            proceed.setText("サーチ完了");
+
             BluetoothDevice bleDevice = result.getDevice();
 
-            if (bleDevice.getName() != null && !isContainsAddress(bleDevice.getAddress())){
-                bleList.add(new BluetoothDeviceInfo(bleDevice.getName(), bleDevice.getAddress()));
+            if(!isContainsAddress(bleDevice.getAddress())){
+                if (bleDevice.getName() != null){
+                    bleList.add(new BluetoothDeviceInfo(bleDevice.getName(), bleDevice.getAddress(), bleDevice.getType()));
+                }else{
+                    bleList.add(new BluetoothDeviceInfo("N/a", bleDevice.getAddress(), bleDevice.getType()));
+                }
             }
+
             adapter.setBleList(bleList);
             listView.setAdapter(adapter);
         }
