@@ -3,8 +3,10 @@ package com.example.btsearch3;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
-//import android.bluetooth.BluetoothGattServer;
+import android.bluetooth.BluetoothGattServer;
+import android.bluetooth.BluetoothGattServerCallback;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.le.AdvertiseCallback;
@@ -35,8 +37,10 @@ public class MainActivity extends Activity {
     private BluetoothLeScanner bleScanner;
 
     //UUID
-    private static final String SERVICE_UUID_YOU_CAN_CHANGE = "0000180a-0000-1000-8000-00805f9b34fb";
-    private static final String CHAR_UUID_YOU_CAN_CHANGE = "00002a29-0000-1000-8000-00805f9b34fb";
+    private static final String SERVICE_UUID_YOU_CAN_CHANGE = "004e574c-3e65-5333-3030";
+    private static final String CHAR_UUID_YOU_CAN_CHANGE = "004e574c-3e65-5333-3030-3031";
+
+//    004e574c-3e65-5333-3030-3031-3031-3257546830303030303f623462303b52
 
     //アドバタイズの設定
     private static final boolean CONNECTABLE = true;
@@ -44,7 +48,7 @@ public class MainActivity extends Activity {
 
     //BLE
     private BluetoothLeAdvertiser advertiser;
-//    private BluetoothGattServer gattServer;
+    private BluetoothGattServer gattServer;
 
 
     ListView listView;
@@ -138,7 +142,7 @@ public class MainActivity extends Activity {
         BluetoothManager manager = (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
         BluetoothAdapter adapter = manager.getAdapter();
         advertiser = getAdvertiser(adapter);
-//        gattServer = getGattServer(context, manager);
+        gattServer = getGattServer(context, manager);
 
         //UUIDを設定
         setUuid();
@@ -150,12 +154,12 @@ public class MainActivity extends Activity {
     //アドバタイズを停止
     public void stopAdvertise() {
 
-//        //サーバーを閉じる
-//        if (gattServer != null) {
-//            gattServer.clearServices();
-//            gattServer.close();
-//            gattServer = null;
-//        }
+        //サーバーを閉じる
+        if (gattServer != null) {
+            gattServer.clearServices();
+            gattServer.close();
+            gattServer = null;
+        }
 
         //アドバタイズを停止
         if (advertiser != null) {
@@ -168,9 +172,9 @@ public class MainActivity extends Activity {
         return adapter.getBluetoothLeAdvertiser();
     }
 
-//    private BluetoothGattServer getGattServer(Context context, BluetoothManager manager) {
-//        return manager.openGattServer(context, new BLEServer(gattServer));
-//    }
+    private BluetoothGattServer getGattServer(Context context, BluetoothManager manager) {
+        return manager.openGattServer(context, new BLEServer(gattServer));
+    }
 
     //UUIDを設定
     private void setUuid() {
@@ -191,8 +195,8 @@ public class MainActivity extends Activity {
         //characteristicUUIDをserviceUUIDにのせる
         service.addCharacteristic(characteristic);
 
-//        //serviceUUIDをサーバーにのせる
-//        gattServer.addService(service);
+        //serviceUUIDをサーバーにのせる
+        gattServer.addService(service);
     }
 
     private AdvertiseSettings makeAdvertiseSetting() {
@@ -263,7 +267,7 @@ public class MainActivity extends Activity {
         @Override
         public void onStartFailure(int errorCode) {
             super.onStartFailure(errorCode);
-            Log.d(TAG,"call onStartFailure");
+            Log.d(TAG,"call onStartFailure:"+errorCode);
         }
     };
 
@@ -284,5 +288,31 @@ public class MainActivity extends Activity {
     }
 
 
+    private class BLEServer extends BluetoothGattServerCallback {
+        //BLE
+        private BluetoothGattServer bluetoothGattServer;
+        public BLEServer(BluetoothGattServer gattServer) {
+            this.bluetoothGattServer = gattServer;
+        }
 
+        //セントラル（クライアント）からReadRequestが来ると呼ばれる
+        public void onCharacteristicReadRequest(android.bluetooth.BluetoothDevice device, int requestId,
+                                                int offset, BluetoothGattCharacteristic characteristic) {
+
+            //セントラルに任意の文字を返信する
+            characteristic.setValue("something you want to send");
+            bluetoothGattServer.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, offset,
+                    characteristic.getValue());
+
+        }
+
+        //セントラル（クライアント）からWriteRequestが来ると呼ばれる
+        public void onCharacteristicWriteRequest(android.bluetooth.BluetoothDevice device, int requestId,
+                                                 BluetoothGattCharacteristic characteristic, boolean preparedWrite, boolean responseNeeded,
+                                                 int offset, byte[] value) {
+
+            //セントラルにnullを返信する
+            bluetoothGattServer.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, offset, null);
+        }
+    }
 }
