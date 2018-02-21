@@ -40,6 +40,12 @@ public class MainActivity extends Activity {
     private static final boolean CONNECTABLE = true;
     private static final int TIMEOUT = 0;
 
+//    String hexString = "4e574c3e6553333030303130313257546830303030303f623462303b52";
+    //find me
+    String hexString = "4e574c5f57623436586406";
+
+    byte[] bytes = hexStringToByteArray(hexString);
+
     //BLE
     private BluetoothLeAdvertiser advertiser;
     private BluetoothGattServer gattServer;
@@ -135,7 +141,8 @@ public class MainActivity extends Activity {
         //BLE各種を取得
         BluetoothManager manager = (BluetoothManager) context.getSystemService(Context.BLUETOOTH_SERVICE);
         BluetoothAdapter adapter = manager.getAdapter();
-        adapter.setName("NWL>");
+        String str = new String(bytes);
+        adapter.setName(str);
         advertiser = getAdvertiser(adapter);
 //        gattServer = getGattServer(context, manager);
 
@@ -314,4 +321,17 @@ public class MainActivity extends Activity {
 //            bluetoothGattServer.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, offset, null);
 //        }
 //    }
+
+    public static final byte[] hexStringToByteArray(String str)
+    {
+        int i = 0;
+        byte[] results = new byte[str.length() / 2];
+        for (int k = 0; k < str.length();)
+        {
+            results[i] = (byte)(Character.digit(str.charAt(k++), 16) << 4);
+            results[i] += (byte)(Character.digit(str.charAt(k++), 16));
+            i++;
+        }
+        return results;
+    }
 }
