@@ -42,7 +42,8 @@ public class MainActivity extends Activity {
 
 //    String hexString = "4e574c3e6553333030303130313257546830303030303f623462303b52";
     //find me
-    String hexString = "4e574c5f57623436586406";
+    String hexString = "4e574c3e65533336586436";
+//    String hexString = "4e574c5f57623436586436";
 
     byte[] bytes = hexStringToByteArray(hexString);
 
