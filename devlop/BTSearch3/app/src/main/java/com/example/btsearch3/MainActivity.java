@@ -36,8 +36,10 @@ public class MainActivity extends Activity {
     private static final int TIMEOUT = 0;
 
     //Test for Find me
-    String hexString = "4e574c3e65533336586436"; //DEVICE ID: 0e352303
-    byte[] bytes = hexStringToByteArray(hexString);
+    String hexString1 = "4e574c5f57623436586436"; //DEVICE ID: 2f273204 GROUP ID: 062834
+    String hexString2 = "4e574c3e65533336586436"; //DEVICE ID: 0e352303 GROUP ID: 062834
+    byte[] bytes1 = hexStringToByteArray(hexString1);
+    byte[] bytes2 = hexStringToByteArray(hexString2);
 
     ListView listView;
     TextView proceed;
@@ -86,16 +88,24 @@ public class MainActivity extends Activity {
             }
         });
 
-        //アドバタイジング開始ボタン押下
+        //アドバタイジング開始ボタン押下　デバイス1確認用
         findViewById(R.id.button3).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startAdvertise(v.getContext());
+                startAdvertise(v.getContext(), 1);
+            }
+        });
+
+        //アドバタイジング開始ボタン押下　デバイス2確認用
+        findViewById(R.id.button4).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startAdvertise(v.getContext(), 2);
             }
         });
 
         //アドバタイジング停止ボタン押下
-        findViewById(R.id.button4).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.button5).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 stopAdvertise();
@@ -126,14 +136,34 @@ public class MainActivity extends Activity {
     }
 
     //アドバタイジング開始
-    public void startAdvertise(Context context) {
+    public void startAdvertise(Context context, int testDevice) {
 
-        String  sendData = new String(bytes);
+        String  sendData;
+        if(!bleAdapter.isMultipleAdvertisementSupported()){
+            Log.d(TAG, "not supported");
+        }else{
+            Log.d(TAG, "supported");
+        }
+
+        if (testDevice == 1){
+            sendData = new String(bytes1);
+        }else{
+            sendData = new String(bytes2);
+        }
         //パラメータをセット
         bleAdapter.setName(sendData);
         advertiser = getAdvertiser(bleAdapter);
 
         advertiser.startAdvertising(makeAdvertiseSetting(),makeAdvertiseData(), advertiseCallBack);
+
+        try {
+            Thread.sleep(3000); //3000ミリ待機する。
+            //明示的にアドバタイズを停止する。
+            stopAdvertise();
+        } catch (InterruptedException e) {
+        }
+
+
     }
 
     //アドバタイズを停止
